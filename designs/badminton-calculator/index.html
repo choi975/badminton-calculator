@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="羽毛球场地与用球费用 AA 计算器，自动处理男女每人 3.5 元的差额。">
+  <meta name="theme-color" content="#123f2c">
+  <title>羽球 AA · Badminton Calculator</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23123f2c'/%3E%3Cpath d='M16 16h32v32H16zM16 32h32M32 16v32' fill='none' stroke='%23d9ff57' stroke-width='4'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script src="calculator.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#calculator">跳到计算器</a>
+
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="羽球 AA 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <span></span>
+        </span>
+        <span class="brand-copy">
+          <strong>羽球 AA</strong>
+          <small>BADMINTON LEDGER</small>
+        </span>
+      </a>
+
+      <div class="topbar-aside" aria-label="工具状态">
+        <span class="live-status"><i aria-hidden="true"></i>即时计算</span>
+        <span class="frame-label">FRAME 01</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="kicker">
+            <span>COURT FEES</span>
+            <i aria-hidden="true"></i>
+            <span>MADE SIMPLE</span>
+          </p>
+          <h1 id="page-title">打完球，<br><em>账算明白。</em></h1>
+          <p class="hero-lede">填好人数、场地和用球，自动算出男女每人应付多少。不用再翻聊天记录找公式。</p>
+        </div>
+
+        <aside class="rule-card" aria-label="固定分摊规则">
+          <span class="rule-label">SHARED RULE / 固定规则</span>
+          <strong>女生每人<br>少付 ¥3.50</strong>
+          <span class="rule-foot">场地基准 ¥70 / 3 小时</span>
+          <span class="rule-mark" aria-hidden="true">AA</span>
+        </aside>
+      </section>
+
+      <section class="calculator" id="calculator" aria-label="羽毛球费用计算器" data-screen-label="Badminton Calculator">
+        <div class="input-panel">
+          <div class="panel-heading">
+            <div>
+              <span class="section-kicker">01 / INPUT</span>
+              <h2>这场的账单</h2>
+            </div>
+            <p>金额以元为单位<br>结果保留两位小数</p>
+          </div>
+
+          <form id="calculatorForm" novalidate>
+            <fieldset class="form-section">
+              <legend>
+                <span>01</span>
+                <strong>人数</strong>
+              </legend>
+
+              <div class="field-grid field-grid--people">
+                <div class="field">
+                  <label for="maleCount">男性数量</label>
+                  <div class="input-shell">
+                    <input id="maleCount" name="maleCount" type="number" min="0" step="1" inputmode="numeric" placeholder="0" autocomplete="off" aria-describedby="maleCountMessage">
+                    <span class="unit">人</span>
+                  </div>
+                  <span class="field-message" id="maleCountMessage" aria-live="polite"></span>
+                </div>
+
+                <div class="field">
+                  <label for="femaleCount">女性数量</label>
+                  <div class="input-shell">
+                    <input id="femaleCount" name="femaleCount" type="number" min="0" step="1" inputmode="numeric" placeholder="0" autocomplete="off" aria-describedby="femaleCountMessage">
+                    <span class="unit">人</span>
+                  </div>
+                  <span class="field-message" id="femaleCountMessage" aria-live="polite"></span>
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="form-section">
+              <legend>
+                <span>02</span>
+                <strong>费用</strong>
+              </legend>
+
+              <div class="field field--wide">
+                <label for="courtDuration">场地时长</label>
+                <div class="input-shell">
+                  <input id="courtDuration" name="courtDuration" type="number" min="0" step="0.5" inputmode="decimal" placeholder="0" autocomplete="off" aria-describedby="courtDurationMessage">
+                  <span class="unit">小时</span>
+                </div>
+                <span class="field-message" id="courtDurationMessage" aria-live="polite"></span>
+              </div>
+
+              <div class="ball-stack">
+                <p class="ball-heading">用球</p>
+
+                <div class="ball-row">
+                  <span class="ball-index" aria-hidden="true">01</span>
+                  <div class="field">
+                    <label for="ball1Price">球 1 单价</label>
+                    <div class="input-shell input-shell--money">
+                      <span class="prefix">¥</span>
+                      <input id="ball1Price" name="ball1Price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" autocomplete="off" aria-describedby="ball1PriceMessage">
+                    </div>
+                    <span class="field-message" id="ball1PriceMessage" aria-live="polite"></span>
+                  </div>
+                  <span class="multiply" aria-hidden="true">×</span>
+                  <div class="field">
+                    <label for="ball1Count">球 1 颗数</label>
+                    <div class="input-shell">
+                      <input id="ball1Count" name="ball1Count" type="number" min="0" step="1" inputmode="numeric" placeholder="0" autocomplete="off" aria-describedby="ball1CountMessage">
+                      <span class="unit">颗</span>
+                    </div>
+                    <span class="field-message" id="ball1CountMessage" aria-live="polite"></span>
+                  </div>
+                </div>
+
+                <div class="ball-row">
+                  <span class="ball-index" aria-hidden="true">02</span>
+                  <div class="field">
+                    <label for="ball2Price">球 2 单价</label>
+                    <div class="input-shell input-shell--money">
+                      <span class="prefix">¥</span>
+                      <input id="ball2Price" name="ball2Price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" autocomplete="off" aria-describedby="ball2PriceMessage">
+                    </div>
+                    <span class="field-message" id="ball2PriceMessage" aria-live="polite"></span>
+                  </div>
+                  <span class="multiply" aria-hidden="true">×</span>
+                  <div class="field">
+                    <label for="ball2Count">球 2 颗数</label>
+                    <div class="input-shell">
+                      <input id="ball2Count" name="ball2Count" type="number" min="0" step="1" inputmode="numeric" placeholder="0" autocomplete="off" aria-describedby="ball2CountMessage">
+                      <span class="unit">颗</span>
+                    </div>
+                    <span class="field-message" id="ball2CountMessage" aria-live="polite"></span>
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+          </form>
+
+          <div class="input-footer">
+            <p><i aria-hidden="true"></i>自动重算 · 当前浏览器保存</p>
+            <button class="text-button" id="resetButton" type="button">清空重填</button>
+          </div>
+        </div>
+
+        <aside class="result-panel" id="resultPanel" data-state="waiting" aria-labelledby="resultTitle">
+          <div class="result-grid" aria-hidden="true"></div>
+
+          <div class="result-header">
+            <div>
+              <span class="section-kicker">02 / SPLIT</span>
+              <h2 id="resultTitle">本场结算</h2>
+            </div>
+            <span class="result-state" id="resultState"><i aria-hidden="true"></i><span>待填写</span></span>
+          </div>
+
+          <div class="total-block">
+            <span class="total-label">总价</span>
+            <div class="total-amount" aria-live="polite">
+              <span class="currency">¥</span>
+              <strong id="totalAmount">—</strong>
+            </div>
+            <p id="costBreakdown">场地费 ¥— <span>+</span> 球费 ¥—</p>
+          </div>
+
+          <div class="share-grid">
+            <article class="share-card share-card--male">
+              <div class="share-card-top">
+                <div>
+                  <span class="share-symbol">M</span>
+                  <h3>男性</h3>
+                </div>
+                <span class="share-people" id="malePeople">0 人</span>
+              </div>
+              <div class="share-price">
+                <span>¥</span>
+                <strong id="maleShare">—</strong>
+                <small>/ 人</small>
+              </div>
+              <p class="share-meta" id="maleMeta">等待填写人数</p>
+              <div class="share-total">
+                <span>组内合计</span>
+                <strong id="maleGroupTotal">¥—</strong>
+              </div>
+            </article>
+
+            <article class="share-card share-card--female">
+              <div class="share-card-top">
+                <div>
+                  <span class="share-symbol">F</span>
+                  <h3>女性</h3>
+                </div>
+                <span class="share-people" id="femalePeople">0 人</span>
+              </div>
+              <div class="share-price">
+                <span>¥</span>
+                <strong id="femaleShare">—</strong>
+                <small>/ 人</small>
+              </div>
+              <p class="share-meta" id="femaleMeta">等待填写人数</p>
+              <div class="share-total">
+                <span>组内合计</span>
+                <strong id="femaleGroupTotal">¥—</strong>
+              </div>
+            </article>
+          </div>
+
+          <div class="rule-strip">
+            <span>固定差额</span>
+            <strong>女生每人少付 ¥3.50</strong>
+          </div>
+
+          <p class="result-note" id="resultNote">请先填写人数和费用，结算结果会自动出现在这里。</p>
+
+          <div class="result-actions">
+            <button class="copy-button" id="copyButton" type="button" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="8" y="8" width="11" height="11" rx="1"></rect>
+                <path d="M16 8V5H5v11h3"></path>
+              </svg>
+              <span>复制结算</span>
+            </button>
+            <span id="copyStatus" class="copy-status" role="status" aria-live="polite"></span>
+          </div>
+
+          <details class="calculation-details">
+            <summary>
+              <span>查看计算明细</span>
+              <span class="summary-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="details-body">
+              <div class="detail-row">
+                <span>场地费</span>
+                <strong id="courtFeeDetail">¥—</strong>
+              </div>
+              <div class="detail-row">
+                <span>球 1</span>
+                <strong id="ball1FeeDetail">¥—</strong>
+              </div>
+              <div class="detail-row">
+                <span>球 2</span>
+                <strong id="ball2FeeDetail">¥—</strong>
+              </div>
+              <p class="formula-note">场地费 = 70 ÷ 3 × 场地时长<br>球费 = 单价 1 × 颗数 1 + 单价 2 × 颗数 2</p>
+            </div>
+          </details>
+        </aside>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>BADMINTON CALCULATOR</span>
+      <span>为每周球局准备 · <span id="footerYear">2026</span></span>
+    </footer>
+  </div>
+</body>
+</html>
