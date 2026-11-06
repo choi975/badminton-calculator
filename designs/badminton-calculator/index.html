@@ -2,272 +2,924 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="羽毛球场地与用球费用 AA 计算器，自动处理男女每人 3.5 元的差额。">
-  <meta name="theme-color" content="#123f2c">
-  <title>羽球 AA · Badminton Calculator</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23123f2c'/%3E%3Cpath d='M16 16h32v32H16zM16 32h32M32 16v32' fill='none' stroke='%23d9ff57' stroke-width='4'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css">
-  <script src="calculator.js" defer></script>
-  <script src="app.js" defer></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="紧凑的羽毛球场地与用球费用 AA 计算器。">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="color-scheme" content="light">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="羽毛球计算器">
+  <link rel="icon" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <title>羽毛球费用计算器</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #ffffff;
+      --ink: #111111;
+      --muted: #6c6c6c;
+      --line: #d3d3d3;
+      --line-strong: #1b1b1b;
+      --field: #ffffff;
+      --danger: #9f241b;
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-width: 320px;
+      background: var(--paper);
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: var(--font);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    .app {
+      width: min(100%, 460px);
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding:
+        max(16px, env(safe-area-inset-top))
+        max(16px, env(safe-area-inset-right))
+        max(22px, env(safe-area-inset-bottom))
+        max(16px, env(safe-area-inset-left));
+      margin: 0 auto;
+    }
+
+    .app-header {
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--line-strong);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+    }
+
+    .rule {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    form {
+      display: grid;
+      gap: 14px;
+      margin: 0;
+    }
+
+    .form-section {
+      display: grid;
+      gap: 8px;
+      padding: 0;
+      margin: 0;
+    }
+
+    .section-title {
+      display: flex;
+      min-height: 20px;
+      gap: 8px;
+      align-items: center;
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .section-title::after {
+      height: 1px;
+      flex: 1;
+      background: var(--line);
+      content: "";
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .field {
+      display: grid;
+      min-width: 0;
+      gap: 4px;
+    }
+
+    .field span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .input-shell {
+      position: relative;
+      display: flex;
+      min-width: 0;
+      align-items: center;
+    }
+
+    .input-shell input {
+      width: 100%;
+      min-width: 0;
+      height: 46px;
+      padding: 0 34px 0 12px;
+      color: var(--ink);
+      background: var(--field);
+      border: 1px solid #bdbdbd;
+      border-radius: 6px;
+      outline: 0;
+      font-size: 16px;
+      font-variant-numeric: tabular-nums;
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+      appearance: textfield;
+    }
+
+    .input-shell input::-webkit-outer-spin-button,
+    .input-shell input::-webkit-inner-spin-button {
+      margin: 0;
+      appearance: none;
+    }
+
+    .input-shell input::placeholder {
+      color: #a5a5a5;
+      opacity: 1;
+    }
+
+    .input-shell input:focus {
+      border-color: var(--ink);
+      box-shadow: 0 0 0 1px var(--ink);
+    }
+
+    .input-shell input[aria-invalid="true"] {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 1px var(--danger);
+    }
+
+    .unit {
+      position: absolute;
+      right: 11px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .ball-label {
+      margin: 2px 0 -2px;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .result-section {
+      display: grid;
+      gap: 9px;
+      padding: 13px 0;
+      margin-top: 16px;
+      border-top: 2px solid var(--line-strong);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .result-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .result-heading h2,
+    .output-title h2 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .result-state {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.3;
+    }
+
+    .result-section[data-state="ready"] .result-state {
+      color: var(--ink);
+    }
+
+    .result-section[data-state="error"] .result-state,
+    .result-section[data-state="error"] .result-note {
+      color: var(--danger);
+    }
+
+    .total-line {
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    .total-line > span:first-child {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .total-value {
+      display: flex;
+      gap: 4px;
+      align-items: baseline;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .total-value strong {
+      font-size: 32px;
+      font-weight: 650;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    .total-value span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .share-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      padding-top: 9px;
+      border-top: 1px solid var(--line);
+    }
+
+    .share-item {
+      display: flex;
+      min-height: 43px;
+      gap: 6px;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .share-item span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .share-item strong {
+      font-size: 16px;
+      font-weight: 650;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .result-note {
+      min-height: 16px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .output-section {
+      margin-top: 14px;
+      overflow: hidden;
+      border: 1px solid #bdbdbd;
+      border-radius: 6px;
+    }
+
+    .output-header {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 8px 8px 7px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .output-title {
+      display: grid;
+      gap: 1px;
+    }
+
+    .output-title span {
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.4;
+    }
+
+    .copy-button {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      flex: none;
+      padding: 0;
+      margin: -4px -2px -4px 0;
+      color: var(--ink);
+      background: transparent;
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+      place-items: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .copy-button:hover:not(:disabled) {
+      background: #f3f3f3;
+    }
+
+    .copy-button:active:not(:disabled) {
+      background: #e8e8e8;
+    }
+
+    .copy-button:disabled {
+      cursor: default;
+      opacity: 0.3;
+    }
+
+    .copy-button svg {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.7;
+    }
+
+    .icon-check {
+      display: none;
+    }
+
+    .copy-button.is-copied .icon-copy {
+      display: none;
+    }
+
+    .copy-button.is-copied .icon-check {
+      display: block;
+    }
+
+    #settlementText {
+      display: block;
+      width: 100%;
+      height: 82px;
+      padding: 10px 12px;
+      color: var(--ink);
+      background: var(--paper);
+      border: 0;
+      border-radius: 0;
+      outline: 0;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.75;
+      resize: none;
+    }
+
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0 0 0 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 360px) {
+      .app {
+        padding-right: 12px;
+        padding-left: 12px;
+      }
+
+      .field-grid {
+        gap: 6px;
+      }
+
+      .share-item {
+        padding-right: 8px;
+        padding-left: 8px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
 </head>
 <body>
-  <a class="skip-link" href="#calculator">跳到计算器</a>
-
-  <div class="site-shell">
-    <header class="topbar">
-      <a class="brand" href="#" aria-label="羽球 AA 首页">
-        <span class="brand-mark" aria-hidden="true">
-          <span></span>
-        </span>
-        <span class="brand-copy">
-          <strong>羽球 AA</strong>
-          <small>BADMINTON LEDGER</small>
-        </span>
-      </a>
-
-      <div class="topbar-aside" aria-label="工具状态">
-        <span class="live-status"><i aria-hidden="true"></i>即时计算</span>
-        <span class="frame-label">FRAME 01</span>
-      </div>
+  <main class="app" data-screen-label="羽毛球费用计算器">
+    <header class="app-header">
+      <h1>羽毛球计算器</h1>
+      <p class="rule">场地费 ¥70/3 小时 · 女生每人少付 ¥3.50</p>
     </header>
 
-    <main>
-      <section class="hero" aria-labelledby="page-title">
-        <div class="hero-copy">
-          <p class="kicker">
-            <span>COURT FEES</span>
-            <i aria-hidden="true"></i>
-            <span>MADE SIMPLE</span>
-          </p>
-          <h1 id="page-title">打完球，<br><em>账算明白。</em></h1>
-          <p class="hero-lede">填好人数、场地和用球，自动算出男女每人应付多少。不用再翻聊天记录找公式。</p>
+    <form id="calculatorForm" novalidate>
+      <section class="form-section" aria-labelledby="peopleTitle">
+        <h2 class="section-title" id="peopleTitle">人数</h2>
+        <div class="field-grid">
+          <label class="field" for="maleCount">
+            <span>男性数量</span>
+            <span class="input-shell">
+              <input id="maleCount" name="maleCount" type="number" min="0" step="1" inputmode="numeric" placeholder="0" autocomplete="off" aria-describedby="formStatus">
+              <span class="unit">人</span>
+            </span>
+          </label>
+          <label class="field" for="femaleCount">
+            <span>女性数量</span>
+            <span class="input-shell">
+              <input id="femaleCount" name="femaleCount" type="number" min="0" step="1" inputmode="numeric" placeholder="0" autocomplete="off" aria-describedby="formStatus">
+              <span class="unit">人</span>
+            </span>
+          </label>
         </div>
-
-        <aside class="rule-card" aria-label="固定分摊规则">
-          <span class="rule-label">SHARED RULE / 固定规则</span>
-          <strong>女生每人<br>少付 ¥3.50</strong>
-          <span class="rule-foot">场地基准 ¥70 / 3 小时</span>
-          <span class="rule-mark" aria-hidden="true">AA</span>
-        </aside>
       </section>
 
-      <section class="calculator" id="calculator" aria-label="羽毛球费用计算器" data-screen-label="Badminton Calculator">
-        <div class="input-panel">
-          <div class="panel-heading">
-            <div>
-              <span class="section-kicker">01 / INPUT</span>
-              <h2>这场的账单</h2>
-            </div>
-            <p>金额以元为单位<br>结果保留两位小数</p>
-          </div>
+      <section class="form-section" aria-labelledby="courtTitle">
+        <h2 class="section-title" id="courtTitle">场地</h2>
+        <label class="field" for="courtDuration">
+          <span>场地时长</span>
+          <span class="input-shell">
+            <input id="courtDuration" name="courtDuration" type="number" min="0" step="0.5" inputmode="decimal" placeholder="0" autocomplete="off" aria-describedby="formStatus">
+            <span class="unit">小时</span>
+          </span>
+        </label>
+      </section>
 
-          <form id="calculatorForm" novalidate>
-            <fieldset class="form-section">
-              <legend>
-                <span>01</span>
-                <strong>人数</strong>
-              </legend>
-
-              <div class="field-grid field-grid--people">
-                <div class="field">
-                  <label for="maleCount">男性数量</label>
-                  <div class="input-shell">
-                    <input id="maleCount" name="maleCount" type="number" min="0" step="1" inputmode="numeric" placeholder="0" autocomplete="off" aria-describedby="maleCountMessage">
-                    <span class="unit">人</span>
-                  </div>
-                  <span class="field-message" id="maleCountMessage" aria-live="polite"></span>
-                </div>
-
-                <div class="field">
-                  <label for="femaleCount">女性数量</label>
-                  <div class="input-shell">
-                    <input id="femaleCount" name="femaleCount" type="number" min="0" step="1" inputmode="numeric" placeholder="0" autocomplete="off" aria-describedby="femaleCountMessage">
-                    <span class="unit">人</span>
-                  </div>
-                  <span class="field-message" id="femaleCountMessage" aria-live="polite"></span>
-                </div>
-              </div>
-            </fieldset>
-
-            <fieldset class="form-section">
-              <legend>
-                <span>02</span>
-                <strong>费用</strong>
-              </legend>
-
-              <div class="field field--wide">
-                <label for="courtDuration">场地时长</label>
-                <div class="input-shell">
-                  <input id="courtDuration" name="courtDuration" type="number" min="0" step="0.5" inputmode="decimal" placeholder="0" autocomplete="off" aria-describedby="courtDurationMessage">
-                  <span class="unit">小时</span>
-                </div>
-                <span class="field-message" id="courtDurationMessage" aria-live="polite"></span>
-              </div>
-
-              <div class="ball-stack">
-                <p class="ball-heading">用球</p>
-
-                <div class="ball-row">
-                  <span class="ball-index" aria-hidden="true">01</span>
-                  <div class="field">
-                    <label for="ball1Price">球 1 单价</label>
-                    <div class="input-shell input-shell--money">
-                      <span class="prefix">¥</span>
-                      <input id="ball1Price" name="ball1Price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" autocomplete="off" aria-describedby="ball1PriceMessage">
-                    </div>
-                    <span class="field-message" id="ball1PriceMessage" aria-live="polite"></span>
-                  </div>
-                  <span class="multiply" aria-hidden="true">×</span>
-                  <div class="field">
-                    <label for="ball1Count">球 1 颗数</label>
-                    <div class="input-shell">
-                      <input id="ball1Count" name="ball1Count" type="number" min="0" step="1" inputmode="numeric" placeholder="0" autocomplete="off" aria-describedby="ball1CountMessage">
-                      <span class="unit">颗</span>
-                    </div>
-                    <span class="field-message" id="ball1CountMessage" aria-live="polite"></span>
-                  </div>
-                </div>
-
-                <div class="ball-row">
-                  <span class="ball-index" aria-hidden="true">02</span>
-                  <div class="field">
-                    <label for="ball2Price">球 2 单价</label>
-                    <div class="input-shell input-shell--money">
-                      <span class="prefix">¥</span>
-                      <input id="ball2Price" name="ball2Price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" autocomplete="off" aria-describedby="ball2PriceMessage">
-                    </div>
-                    <span class="field-message" id="ball2PriceMessage" aria-live="polite"></span>
-                  </div>
-                  <span class="multiply" aria-hidden="true">×</span>
-                  <div class="field">
-                    <label for="ball2Count">球 2 颗数</label>
-                    <div class="input-shell">
-                      <input id="ball2Count" name="ball2Count" type="number" min="0" step="1" inputmode="numeric" placeholder="0" autocomplete="off" aria-describedby="ball2CountMessage">
-                      <span class="unit">颗</span>
-                    </div>
-                    <span class="field-message" id="ball2CountMessage" aria-live="polite"></span>
-                  </div>
-                </div>
-              </div>
-            </fieldset>
-          </form>
-
-          <div class="input-footer">
-            <p><i aria-hidden="true"></i>自动重算 · 当前浏览器保存</p>
-            <button class="text-button" id="resetButton" type="button">清空重填</button>
-          </div>
+      <section class="form-section" aria-labelledby="ballTitle">
+        <h2 class="section-title" id="ballTitle">用球</h2>
+        <p class="ball-label">球 1</p>
+        <div class="field-grid">
+          <label class="field" for="ball1Price">
+            <span>单价（元）</span>
+            <span class="input-shell">
+              <input id="ball1Price" name="ball1Price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0" autocomplete="off" data-cache-price aria-describedby="formStatus">
+            </span>
+          </label>
+          <label class="field" for="ball1Count">
+            <span>颗数</span>
+            <span class="input-shell">
+              <input id="ball1Count" name="ball1Count" type="number" min="0" step="1" inputmode="numeric" placeholder="0" autocomplete="off" aria-describedby="formStatus">
+              <span class="unit">颗</span>
+            </span>
+          </label>
         </div>
 
-        <aside class="result-panel" id="resultPanel" data-state="waiting" aria-labelledby="resultTitle">
-          <div class="result-grid" aria-hidden="true"></div>
-
-          <div class="result-header">
-            <div>
-              <span class="section-kicker">02 / SPLIT</span>
-              <h2 id="resultTitle">本场结算</h2>
-            </div>
-            <span class="result-state" id="resultState"><i aria-hidden="true"></i><span>待填写</span></span>
-          </div>
-
-          <div class="total-block">
-            <span class="total-label">总价</span>
-            <div class="total-amount" aria-live="polite">
-              <span class="currency">¥</span>
-              <strong id="totalAmount">—</strong>
-            </div>
-            <p id="costBreakdown">场地费 ¥— <span>+</span> 球费 ¥—</p>
-          </div>
-
-          <div class="share-grid">
-            <article class="share-card share-card--male">
-              <div class="share-card-top">
-                <div>
-                  <span class="share-symbol">M</span>
-                  <h3>男性</h3>
-                </div>
-                <span class="share-people" id="malePeople">0 人</span>
-              </div>
-              <div class="share-price">
-                <span>¥</span>
-                <strong id="maleShare">—</strong>
-                <small>/ 人</small>
-              </div>
-              <p class="share-meta" id="maleMeta">等待填写人数</p>
-              <div class="share-total">
-                <span>组内合计</span>
-                <strong id="maleGroupTotal">¥—</strong>
-              </div>
-            </article>
-
-            <article class="share-card share-card--female">
-              <div class="share-card-top">
-                <div>
-                  <span class="share-symbol">F</span>
-                  <h3>女性</h3>
-                </div>
-                <span class="share-people" id="femalePeople">0 人</span>
-              </div>
-              <div class="share-price">
-                <span>¥</span>
-                <strong id="femaleShare">—</strong>
-                <small>/ 人</small>
-              </div>
-              <p class="share-meta" id="femaleMeta">等待填写人数</p>
-              <div class="share-total">
-                <span>组内合计</span>
-                <strong id="femaleGroupTotal">¥—</strong>
-              </div>
-            </article>
-          </div>
-
-          <div class="rule-strip">
-            <span>固定差额</span>
-            <strong>女生每人少付 ¥3.50</strong>
-          </div>
-
-          <p class="result-note" id="resultNote">请先填写人数和费用，结算结果会自动出现在这里。</p>
-
-          <div class="result-actions">
-            <button class="copy-button" id="copyButton" type="button" disabled>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <rect x="8" y="8" width="11" height="11" rx="1"></rect>
-                <path d="M16 8V5H5v11h3"></path>
-              </svg>
-              <span>复制结算</span>
-            </button>
-            <span id="copyStatus" class="copy-status" role="status" aria-live="polite"></span>
-          </div>
-
-          <details class="calculation-details">
-            <summary>
-              <span>查看计算明细</span>
-              <span class="summary-icon" aria-hidden="true">+</span>
-            </summary>
-            <div class="details-body">
-              <div class="detail-row">
-                <span>场地费</span>
-                <strong id="courtFeeDetail">¥—</strong>
-              </div>
-              <div class="detail-row">
-                <span>球 1</span>
-                <strong id="ball1FeeDetail">¥—</strong>
-              </div>
-              <div class="detail-row">
-                <span>球 2</span>
-                <strong id="ball2FeeDetail">¥—</strong>
-              </div>
-              <p class="formula-note">场地费 = 70 ÷ 3 × 场地时长<br>球费 = 单价 1 × 颗数 1 + 单价 2 × 颗数 2</p>
-            </div>
-          </details>
-        </aside>
+        <p class="ball-label">球 2</p>
+        <div class="field-grid">
+          <label class="field" for="ball2Price">
+            <span>单价（元）</span>
+            <span class="input-shell">
+              <input id="ball2Price" name="ball2Price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0" autocomplete="off" data-cache-price aria-describedby="formStatus">
+            </span>
+          </label>
+          <label class="field" for="ball2Count">
+            <span>颗数</span>
+            <span class="input-shell">
+              <input id="ball2Count" name="ball2Count" type="number" min="0" step="1" inputmode="numeric" placeholder="0" autocomplete="off" aria-describedby="formStatus">
+              <span class="unit">颗</span>
+            </span>
+          </label>
+        </div>
       </section>
-    </main>
+    </form>
 
-    <footer class="site-footer">
-      <span>BADMINTON CALCULATOR</span>
-      <span>为每周球局准备 · <span id="footerYear">2026</span></span>
-    </footer>
-  </div>
+    <section class="result-section" id="resultSection" data-state="waiting" aria-labelledby="resultTitle">
+      <div class="result-heading">
+        <h2 id="resultTitle">计算结果</h2>
+        <span class="result-state" id="resultState">待填写</span>
+      </div>
+      <div class="total-line">
+        <span>总价</span>
+        <span class="total-value">
+          <strong id="totalAmount">—</strong>
+          <span>元</span>
+        </span>
+      </div>
+      <div class="share-grid">
+        <div class="share-item">
+          <span>男生 / 人</span>
+          <strong id="maleShare">—</strong>
+        </div>
+        <div class="share-item">
+          <span>女生 / 人</span>
+          <strong id="femaleShare">—</strong>
+        </div>
+      </div>
+      <p class="result-note" id="resultNote" aria-live="polite">填写完整后自动计算。</p>
+    </section>
+
+    <section class="output-section" aria-labelledby="outputTitle">
+      <div class="output-header">
+        <div class="output-title">
+          <h2 id="outputTitle">结算文本</h2>
+          <span>可直接复制发送</span>
+        </div>
+        <button class="copy-button" id="copyButton" type="button" aria-label="复制结算文本" title="复制结算文本" disabled>
+          <svg class="icon-copy" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="8" y="8" width="11" height="11" rx="1.5"></rect>
+            <path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-10A1.5 1.5 0 0 0 3 5.5v10A1.5 1.5 0 0 0 4.5 17H7"></path>
+          </svg>
+          <svg class="icon-check" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m5 12 4.5 4.5L19 7"></path>
+          </svg>
+        </button>
+      </div>
+      <textarea id="settlementText" readonly aria-label="结算文本">填写完整后显示计算结果</textarea>
+      <span class="visually-hidden" id="formStatus" role="status" aria-live="polite"></span>
+    </section>
+  </main>
+
+  <script>
+    (function attachBadmintonCalculator(root, factory) {
+      const calculator = factory();
+      root.BadmintonCalculator = calculator;
+    })(typeof globalThis !== "undefined" ? globalThis : this, function createCalculator() {
+      "use strict";
+
+      const COURT_RATE_PER_HOUR = 70 / 3;
+      const GENDER_GAP = 3.5;
+
+      function toAmount(value) {
+        const number = Number(value);
+        return Number.isFinite(number) ? number : 0;
+      }
+
+      function calculate(input) {
+        const maleCount = Math.max(0, toAmount(input.maleCount));
+        const femaleCount = Math.max(0, toAmount(input.femaleCount));
+        const durationHours = Math.max(0, toAmount(input.courtDuration));
+        const ball1Price = Math.max(0, toAmount(input.ball1Price));
+        const ball1Count = Math.max(0, toAmount(input.ball1Count));
+        const ball2Price = Math.max(0, toAmount(input.ball2Price));
+        const ball2Count = Math.max(0, toAmount(input.ball2Count));
+
+        const peopleCount = maleCount + femaleCount;
+        const courtFee = COURT_RATE_PER_HOUR * durationHours;
+        const ball1Fee = ball1Price * ball1Count;
+        const ball2Fee = ball2Price * ball2Count;
+        const ballFee = ball1Fee + ball2Fee;
+        const total = courtFee + ballFee;
+
+        const base = {
+          maleCount,
+          femaleCount,
+          durationHours,
+          ball1Price,
+          ball1Count,
+          ball2Price,
+          ball2Count,
+          courtFee,
+          ball1Fee,
+          ball2Fee,
+          ballFee,
+          total,
+        };
+
+        if (peopleCount <= 0 || total <= 0) {
+          return {
+            ...base,
+            status: "incomplete",
+            maleShare: null,
+            femaleShare: null,
+          };
+        }
+
+        if (maleCount > 0 && femaleCount > 0) {
+          const femaleShare = (total - GENDER_GAP * maleCount) / peopleCount;
+          const maleShare = femaleShare + GENDER_GAP;
+
+          if (femaleShare < -0.000001) {
+            return {
+              ...base,
+              status: "invalid",
+              maleShare: null,
+              femaleShare: null,
+            };
+          }
+
+          return {
+            ...base,
+            status: "ready",
+            distribution: "mixed",
+            femaleShare,
+            maleShare,
+          };
+        }
+
+        if (maleCount > 0) {
+          return {
+            ...base,
+            status: "ready",
+            distribution: "maleOnly",
+            maleShare: total / maleCount,
+            femaleShare: null,
+          };
+        }
+
+        return {
+          ...base,
+          status: "ready",
+          distribution: "femaleOnly",
+          maleShare: null,
+          femaleShare: total / femaleCount,
+        };
+      }
+
+      return {
+        COURT_RATE_PER_HOUR,
+        GENDER_GAP,
+        calculate,
+      };
+    });
+  </script>
+  <script>
+    (function startBadmintonCalculator() {
+      "use strict";
+
+      const calculator = window.BadmintonCalculator;
+      const form = document.querySelector("#calculatorForm");
+      if (!calculator || !form) return;
+
+      const CACHE_KEY = "badminton-calculator:ball-prices:v1";
+      const LEGACY_CACHE_KEY = "badminton-calculator:v1";
+      const inputs = Array.from(form.querySelectorAll("input"));
+      const priceInputs = Array.from(form.querySelectorAll("[data-cache-price]"));
+      const integerFields = new Set(["maleCount", "femaleCount", "ball1Count", "ball2Count"]);
+
+      const elements = {
+        resultSection: document.querySelector("#resultSection"),
+        resultState: document.querySelector("#resultState"),
+        totalAmount: document.querySelector("#totalAmount"),
+        maleShare: document.querySelector("#maleShare"),
+        femaleShare: document.querySelector("#femaleShare"),
+        resultNote: document.querySelector("#resultNote"),
+        settlementText: document.querySelector("#settlementText"),
+        copyButton: document.querySelector("#copyButton"),
+        formStatus: document.querySelector("#formStatus"),
+      };
+
+      const moneyFormatter = new Intl.NumberFormat("zh-CN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+      const inputNumberFormatter = new Intl.NumberFormat("zh-CN", {
+        maximumFractionDigits: 2,
+      });
+      let copyTimer = 0;
+      let currentOutput = "";
+
+      function formatMoney(value) {
+        return value !== null && Number.isFinite(value) ? moneyFormatter.format(value) : "—";
+      }
+
+      function formatInputNumber(value) {
+        return inputNumberFormatter.format(Number.isFinite(value) ? value : 0);
+      }
+
+      function readInput(input) {
+        if (input.value.trim() === "") return 0;
+        const number = Number(input.value);
+        return Number.isFinite(number) ? number : Number.NaN;
+      }
+
+      function collectInput() {
+        return inputs.reduce((values, input) => {
+          values[input.name] = readInput(input);
+          return values;
+        }, {});
+      }
+
+      function validateInput(values) {
+        let firstError = null;
+
+        inputs.forEach((input) => {
+          const value = values[input.name];
+          let error = "";
+
+          if (!Number.isFinite(value)) error = "请输入有效数字";
+          else if (value < 0) error = "输入值不能小于 0";
+          else if (integerFields.has(input.name) && !Number.isInteger(value)) error = "人数和颗数需填写整数";
+
+          input.setAttribute("aria-invalid", error ? "true" : "false");
+          if (error && !firstError) firstError = error;
+        });
+
+        return firstError;
+      }
+
+      function setState(state, label) {
+        elements.resultSection.dataset.state = state;
+        elements.resultState.textContent = label;
+      }
+
+      function setOutput(value) {
+        currentOutput = value;
+        elements.settlementText.value = value || "填写完整后显示计算结果";
+        elements.copyButton.disabled = !value;
+        elements.copyButton.classList.remove("is-copied");
+        elements.copyButton.setAttribute("aria-label", value ? "复制结算文本" : "暂无可复制内容");
+      }
+
+      function buildOutputText(result) {
+        return [
+          `场地费：${formatMoney(result.courtFee)}元（共${formatInputNumber(result.durationHours)}小时）`,
+          `球费：${formatInputNumber(result.ball1Price)}*${formatInputNumber(result.ball1Count)}+${formatInputNumber(result.ball2Price)}*${formatInputNumber(result.ball2Count)}=${formatMoney(result.ballFee)}元`,
+        ].join("\n");
+      }
+
+      function render() {
+        const values = collectInput();
+        const validationError = validateInput(values);
+        const result = calculator.calculate(values);
+        const peopleCount = result.maleCount + result.femaleCount;
+
+        if (validationError) {
+          setState("error", "检查输入");
+          elements.totalAmount.textContent = "—";
+          elements.maleShare.textContent = "—";
+          elements.femaleShare.textContent = "—";
+          elements.resultNote.textContent = validationError;
+          elements.formStatus.textContent = validationError;
+          setOutput("");
+          return;
+        }
+
+        if (peopleCount <= 0) {
+          setState("waiting", "待填写");
+          elements.totalAmount.textContent = "—";
+          elements.maleShare.textContent = "—";
+          elements.femaleShare.textContent = "—";
+          elements.resultNote.textContent = "请先填写人数。";
+          elements.formStatus.textContent = "请先填写人数";
+          setOutput("");
+          return;
+        }
+
+        if (result.total <= 0) {
+          setState("waiting", "待填写");
+          elements.totalAmount.textContent = "0.00";
+          elements.maleShare.textContent = "—";
+          elements.femaleShare.textContent = "—";
+          elements.resultNote.textContent = "请填写场地时长或用球费用。";
+          elements.formStatus.textContent = "请填写场地时长或用球费用";
+          setOutput("");
+          return;
+        }
+
+        if (result.status === "invalid") {
+          setState("error", "请检查");
+          elements.totalAmount.textContent = formatMoney(result.total);
+          elements.maleShare.textContent = "—";
+          elements.femaleShare.textContent = "—";
+          elements.resultNote.textContent = "当前总价不足以覆盖 ¥3.50 的男女差额。";
+          elements.formStatus.textContent = "当前总价不足以覆盖男女差额";
+          setOutput("");
+          return;
+        }
+
+        setState("ready", "已计算");
+        elements.totalAmount.textContent = formatMoney(result.total);
+        elements.maleShare.textContent = result.maleShare === null ? "—" : `¥${formatMoney(result.maleShare)}`;
+        elements.femaleShare.textContent = result.femaleShare === null ? "—" : `¥${formatMoney(result.femaleShare)}`;
+
+        if (result.distribution === "mixed") {
+          elements.resultNote.textContent = "已按女生每人少付 ¥3.50 计算。";
+        } else if (result.distribution === "maleOnly") {
+          elements.resultNote.textContent = "本场只有男生，按人数直接均摊。";
+        } else {
+          elements.resultNote.textContent = "本场只有女生，按人数直接均摊。";
+        }
+
+        const output = buildOutputText(result);
+        elements.formStatus.textContent = output.replace("\n", "；");
+        setOutput(output);
+      }
+
+      function saveBallPrices() {
+        try {
+          const prices = priceInputs.reduce((saved, input) => {
+            saved[input.name] = input.value;
+            return saved;
+          }, {});
+          localStorage.setItem(CACHE_KEY, JSON.stringify(prices));
+        } catch {
+          // The calculator remains usable when browser storage is unavailable.
+        }
+      }
+
+      function restoreBallPrices() {
+        try {
+          let saved = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+
+          if (!saved) {
+            const legacy = JSON.parse(localStorage.getItem(LEGACY_CACHE_KEY) || "null");
+            if (legacy) {
+              saved = {
+                ball1Price: legacy.ball1Price,
+                ball2Price: legacy.ball2Price,
+              };
+              localStorage.setItem(CACHE_KEY, JSON.stringify(saved));
+            }
+          }
+
+          if (saved) {
+            priceInputs.forEach((input) => {
+              if (typeof saved[input.name] === "string" || typeof saved[input.name] === "number") {
+                input.value = String(saved[input.name]);
+              }
+            });
+          }
+
+          localStorage.removeItem(LEGACY_CACHE_KEY);
+        } catch {
+          // Ignore unavailable or malformed saved values.
+        }
+      }
+
+      async function copyOutput() {
+        if (!currentOutput) return;
+
+        try {
+          await navigator.clipboard.writeText(currentOutput);
+        } catch {
+          const helper = document.createElement("textarea");
+          helper.value = currentOutput;
+          helper.setAttribute("readonly", "");
+          helper.style.position = "fixed";
+          helper.style.opacity = "0";
+          document.body.appendChild(helper);
+          helper.select();
+          document.execCommand("copy");
+          helper.remove();
+        }
+
+        window.clearTimeout(copyTimer);
+        elements.copyButton.classList.add("is-copied");
+        elements.copyButton.setAttribute("aria-label", "已复制");
+        elements.formStatus.textContent = "结算文本已复制";
+        copyTimer = window.setTimeout(() => {
+          elements.copyButton.classList.remove("is-copied");
+          elements.copyButton.setAttribute("aria-label", "复制结算文本");
+        }, 1600);
+      }
+
+      inputs.forEach((input) => {
+        input.addEventListener("input", () => {
+          if (input.matches("[data-cache-price]")) saveBallPrices();
+          render();
+        });
+      });
+
+      form.addEventListener("submit", (event) => event.preventDefault());
+      elements.copyButton.addEventListener("click", copyOutput);
+
+      form.reset();
+      restoreBallPrices();
+      render();
+
+      window.addEventListener("pageshow", (event) => {
+        if (!event.persisted) return;
+        form.reset();
+        restoreBallPrices();
+        render();
+      });
+    })();
+  </script>
 </body>
 </html>

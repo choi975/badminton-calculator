@@ -1,7 +1,24 @@
 "use strict";
 
 const assert = require("node:assert/strict");
-const { calculate, GENDER_GAP } = require("../designs/badminton-calculator/calculator.js");
+const fs = require("node:fs");
+const path = require("node:path");
+const vm = require("node:vm");
+
+const html = fs.readFileSync(
+  path.join(__dirname, "../designs/badminton-calculator/index.html"),
+  "utf8",
+);
+const scriptBlocks = Array.from(html.matchAll(/<script>([\s\S]*?)<\/script>/g), (match) => match[1]);
+const calculatorScript = scriptBlocks.find((script) => script.includes("COURT_RATE_PER_HOUR"));
+
+assert.ok(calculatorScript, "calculator script should be embedded in index.html");
+
+const sandbox = {};
+sandbox.globalThis = sandbox;
+vm.runInNewContext(calculatorScript, sandbox);
+
+const { calculate, GENDER_GAP } = sandbox.BadmintonCalculator;
 
 function closeTo(actual, expected, epsilon = 1e-9) {
   assert.ok(Math.abs(actual - expected) < epsilon, `${actual} should be close to ${expected}`);
@@ -26,7 +43,7 @@ function closeTo(actual, expected, epsilon = 1e-9) {
   closeTo(result.maleShare, 35.083333333333336);
   closeTo(result.femaleShare, 31.583333333333336);
   closeTo(result.maleShare - result.femaleShare, GENDER_GAP);
-  closeTo(result.maleGroupTotal + result.femaleGroupTotal, result.total);
+  closeTo(result.maleShare * result.maleCount + result.femaleShare * result.femaleCount, result.total);
 }
 
 {
