@@ -71,7 +71,7 @@ a {
 }
 
 .skip-link {
-  position: fixed;
+  position: absolute;
   z-index: 100;
   top: 12px;
   left: 12px;
