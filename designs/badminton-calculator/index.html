@@ -128,6 +128,7 @@
       display: grid;
       min-width: 0;
       gap: 4px;
+      align-content: start;
     }
 
     .field span {
@@ -197,10 +198,10 @@
     }
 
     .wheel-control {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 30px;
+      --wheel-row-height: 32px;
+      position: relative;
       width: 100%;
-      height: 44px;
+      height: 128px;
       overflow: hidden;
       background: var(--field);
       border: 1px solid #bdbdbd;
@@ -208,69 +209,67 @@
       transition: border-color 120ms ease, box-shadow 120ms ease;
     }
 
+    .wheel-control::before {
+      position: absolute;
+      z-index: 0;
+      top: calc(50% - (var(--wheel-row-height) / 2));
+      right: 0;
+      left: 0;
+      height: var(--wheel-row-height);
+      background: #f1f1f1;
+      content: "";
+      pointer-events: none;
+    }
+
     .wheel-control:focus-within {
       border-color: var(--ink);
       box-shadow: 0 0 0 1px var(--ink);
     }
 
-    .field .wheel-value {
-      display: grid;
-      min-width: 0;
-      padding: 0 10px;
-      color: var(--ink);
-      font-size: 16px;
-      font-variant-numeric: tabular-nums;
-      line-height: 1;
-      cursor: ns-resize;
+    .wheel-viewport {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      padding-block: 48px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
       outline: 0;
-      touch-action: none;
-      user-select: none;
-      place-items: center start;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      mask-image: linear-gradient(to bottom, transparent 0%, #000 25%, #000 75%, transparent 100%);
     }
 
-    .wheel-value:focus-visible {
+    .wheel-viewport::-webkit-scrollbar {
+      display: none;
+    }
+
+    .wheel-viewport:focus-visible {
       box-shadow: inset 0 0 0 2px var(--ink);
     }
 
-    .wheel-arrows {
-      display: grid;
-      grid-template-rows: 1fr 1fr;
-      border-left: 1px solid var(--line);
+    .wheel-option {
+      display: flex;
+      width: 100%;
+      height: var(--wheel-row-height);
+      align-items: center;
+      justify-content: center;
+      color: #a5a5a5;
+      font-size: 20px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      scroll-snap-align: center;
+      scroll-snap-stop: always;
+      transition: color 100ms ease, font-size 100ms ease;
+      user-select: none;
     }
 
-    .wheel-button {
-      display: grid;
-      width: 30px;
-      height: 22px;
-      padding: 0;
+    .wheel-option.is-selected {
       color: var(--ink);
-      background: var(--paper);
-      border: 0;
-      cursor: pointer;
-      place-items: center;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .wheel-button + .wheel-button {
-      border-top: 1px solid var(--line);
-    }
-
-    .wheel-button:hover {
-      background: #f3f3f3;
-    }
-
-    .wheel-button:active {
-      background: #e8e8e8;
-    }
-
-    .wheel-button svg {
-      width: 13px;
-      height: 13px;
-      fill: none;
-      stroke: currentColor;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      stroke-width: 1.7;
+      font-size: 26px;
+      font-weight: 500;
     }
 
     [hidden] {
@@ -562,15 +561,7 @@
         <div class="field">
           <span id="ball1CountLabel">球1颗数</span>
           <div class="wheel-control" data-wheel-control data-wheel-target="ball1Count">
-            <span class="wheel-value" id="ball1CountWheel" role="spinbutton" tabindex="0" aria-labelledby="ball1CountLabel" aria-valuemin="0" aria-valuemax="99" aria-valuenow="0">0</span>
-            <span class="wheel-arrows">
-              <button class="wheel-button" type="button" data-wheel-step="1" data-wheel-target="ball1Count" aria-label="增加球1颗数">
-                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 10 4-4 4 4"></path></svg>
-              </button>
-              <button class="wheel-button" type="button" data-wheel-step="-1" data-wheel-target="ball1Count" aria-label="减少球1颗数">
-                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"></path></svg>
-              </button>
-            </span>
+            <div class="wheel-viewport" id="ball1CountWheel" role="spinbutton" tabindex="0" aria-labelledby="ball1CountLabel" aria-valuemin="0" aria-valuemax="99" aria-valuenow="0"></div>
             <input id="ball1Count" name="ball1Count" type="hidden" value="0">
           </div>
         </div>
@@ -586,15 +577,7 @@
         <div class="field">
           <span id="ball2CountLabel">球2颗数</span>
           <div class="wheel-control" data-wheel-control data-wheel-target="ball2Count">
-            <span class="wheel-value" id="ball2CountWheel" role="spinbutton" tabindex="0" aria-labelledby="ball2CountLabel" aria-valuemin="0" aria-valuemax="99" aria-valuenow="0">0</span>
-            <span class="wheel-arrows">
-              <button class="wheel-button" type="button" data-wheel-step="1" data-wheel-target="ball2Count" aria-label="增加球2颗数">
-                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 10 4-4 4 4"></path></svg>
-              </button>
-              <button class="wheel-button" type="button" data-wheel-step="-1" data-wheel-target="ball2Count" aria-label="减少球2颗数">
-                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"></path></svg>
-              </button>
-            </span>
+            <div class="wheel-viewport" id="ball2CountWheel" role="spinbutton" tabindex="0" aria-labelledby="ball2CountLabel" aria-valuemin="0" aria-valuemax="99" aria-valuenow="0"></div>
             <input id="ball2Count" name="ball2Count" type="hidden" value="0">
           </div>
         </div>
@@ -752,6 +735,8 @@
       const priceInputs = Array.from(form.querySelectorAll("[data-cache-price]"));
       const wheelControls = Array.from(document.querySelectorAll("[data-wheel-control]"));
       const integerFields = new Set(["maleCount", "femaleCount", "ball1Count", "ball2Count"]);
+      const WHEEL_ROW_HEIGHT = 32;
+      const WHEEL_MAX = 99;
 
       const elements = {
         resultSection: document.querySelector("#resultSection"),
@@ -821,32 +806,60 @@
         elements.copyButton.setAttribute("aria-label", value ? "复制结算文本" : "暂无可复制内容");
       }
 
-      function syncWheelDisplay(control) {
-        const target = document.getElementById(control.dataset.wheelTarget);
-        const valueElement = control.querySelector(".wheel-value");
-        const value = Math.max(0, Math.min(99, Math.round(Number(target.value) || 0)));
+      function updateWheelSelection(control, value) {
+        control.querySelectorAll(".wheel-option").forEach((option) => {
+          const selected = Number(option.dataset.value) === value;
+          option.classList.toggle("is-selected", selected);
+        });
+      }
 
-        target.value = String(value);
-        valueElement.textContent = String(value);
-        valueElement.setAttribute("aria-valuenow", String(value));
+      function setWheelValue(control, value) {
+        const target = document.getElementById(control.dataset.wheelTarget);
+        const viewport = control.querySelector(".wheel-viewport");
+        const nextValue = Math.max(0, Math.min(WHEEL_MAX, Math.round(Number(value) || 0)));
+
+        target.value = String(nextValue);
+        viewport.setAttribute("aria-valuenow", String(nextValue));
+        viewport.dataset.syncing = "true";
+        viewport.scrollTop = nextValue * WHEEL_ROW_HEIGHT;
+        updateWheelSelection(control, nextValue);
+
+        window.setTimeout(() => {
+          viewport.scrollTop = nextValue * WHEEL_ROW_HEIGHT;
+          delete viewport.dataset.syncing;
+        }, 80);
       }
 
       function syncWheelDisplays() {
-        wheelControls.forEach(syncWheelDisplay);
+        wheelControls.forEach((control) => {
+          const target = document.getElementById(control.dataset.wheelTarget);
+          setWheelValue(control, target.value);
+        });
       }
 
-      function changeWheelValue(targetId, delta) {
-        const target = document.getElementById(targetId);
+      function changeWheelValue(control, delta) {
+        const target = document.getElementById(control.dataset.wheelTarget);
         const current = Number(target.value) || 0;
-        target.value = String(Math.max(0, Math.min(99, Math.round(current + delta))));
-        syncWheelDisplay(document.querySelector(`[data-wheel-target="${targetId}"][data-wheel-control]`));
+        setWheelValue(control, current + delta);
         render();
       }
 
       function buildOutputText(result) {
+        const ballTerms = [];
+        if (result.ball1Count > 0) {
+          ballTerms.push(`${formatInputNumber(result.ball1Price)}*${formatInputNumber(result.ball1Count)}`);
+        }
+        if (result.ball2Count > 0) {
+          ballTerms.push(`${formatInputNumber(result.ball2Price)}*${formatInputNumber(result.ball2Count)}`);
+        }
+
+        const ballFeeLine = ballTerms.length
+          ? `球费：${ballTerms.join("+")}=${formatMoney(result.ballFee)}元`
+          : `球费：${formatMoney(result.ballFee)}元`;
+
         return [
           `场地费：${formatMoney(result.courtFee)}元（共${formatInputNumber(result.durationHours)}小时）`,
-          `球费：${formatInputNumber(result.ball1Price)}*${formatInputNumber(result.ball1Count)}+${formatInputNumber(result.ball2Price)}*${formatInputNumber(result.ball2Count)}=${formatMoney(result.ballFee)}元`,
+          ballFeeLine,
         ].join("\n");
       }
 
@@ -971,18 +984,45 @@
         });
       });
 
+      function createWheelOptions(control) {
+        const viewport = control.querySelector(".wheel-viewport");
+        if (viewport.children.length > 0) return;
+
+        const fragment = document.createDocumentFragment();
+        for (let value = 0; value <= WHEEL_MAX; value += 1) {
+          const option = document.createElement("div");
+          option.className = "wheel-option";
+          option.dataset.value = String(value);
+          option.setAttribute("aria-hidden", "true");
+          option.textContent = String(value);
+          fragment.appendChild(option);
+        }
+        viewport.appendChild(fragment);
+      }
+
+      wheelControls.forEach(createWheelOptions);
+
       wheelControls.forEach((control) => {
-        const targetId = control.dataset.wheelTarget;
-        const valueElement = control.querySelector(".wheel-value");
-        let pointerStartY = null;
+        const viewport = control.querySelector(".wheel-viewport");
+        const target = document.getElementById(control.dataset.wheelTarget);
 
-        control.addEventListener("wheel", (event) => {
-          if (Math.abs(event.deltaY) < 2) return;
-          event.preventDefault();
-          changeWheelValue(targetId, event.deltaY > 0 ? 1 : -1);
-        }, { passive: false });
+        viewport.addEventListener("scroll", () => {
+          if (viewport.dataset.syncing === "true") return;
+          window.clearTimeout(control.scrollTimer);
+          control.scrollTimer = window.setTimeout(() => {
+            const value = Math.max(
+              0,
+              Math.min(WHEEL_MAX, Math.round(viewport.scrollTop / WHEEL_ROW_HEIGHT)),
+            );
+            if (value === Number(target.value)) return;
+            target.value = String(value);
+            viewport.setAttribute("aria-valuenow", String(value));
+            updateWheelSelection(control, value);
+            render();
+          }, 80);
+        }, { passive: true });
 
-        valueElement.addEventListener("keydown", (event) => {
+        viewport.addEventListener("keydown", (event) => {
           const keyDelta = {
             ArrowUp: 1,
             ArrowRight: 1,
@@ -992,43 +1032,23 @@
 
           if (keyDelta) {
             event.preventDefault();
-            changeWheelValue(targetId, keyDelta);
+            changeWheelValue(control, keyDelta);
           } else if (event.key === "Home") {
             event.preventDefault();
-            const target = document.getElementById(targetId);
-            target.value = "0";
-            syncWheelDisplay(control);
+            setWheelValue(control, 0);
             render();
           } else if (event.key === "End") {
             event.preventDefault();
-            const target = document.getElementById(targetId);
-            target.value = "99";
-            syncWheelDisplay(control);
+            setWheelValue(control, WHEEL_MAX);
             render();
           }
         });
 
-        valueElement.addEventListener("pointerdown", (event) => {
-          if (event.pointerType === "mouse" && event.button !== 0) return;
-          pointerStartY = event.clientY;
-          valueElement.setPointerCapture(event.pointerId);
-        });
-
-        valueElement.addEventListener("pointerup", (event) => {
-          if (pointerStartY === null) return;
-          const distance = event.clientY - pointerStartY;
-          pointerStartY = null;
-          if (Math.abs(distance) >= 14) changeWheelValue(targetId, distance < 0 ? 1 : -1);
-        });
-
-        valueElement.addEventListener("pointercancel", () => {
-          pointerStartY = null;
-        });
-      });
-
-      document.querySelectorAll("[data-wheel-step]").forEach((button) => {
-        button.addEventListener("click", () => {
-          changeWheelValue(button.dataset.wheelTarget, Number(button.dataset.wheelStep));
+        viewport.addEventListener("click", (event) => {
+          const option = event.target.closest(".wheel-option");
+          if (!option) return;
+          setWheelValue(control, Number(option.dataset.value));
+          render();
         });
       });
 
