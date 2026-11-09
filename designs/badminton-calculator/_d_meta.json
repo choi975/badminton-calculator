@@ -6,7 +6,7 @@
           "path": "index.html",
           "createdAt": "2026-11-06T08:11:16.241Z",
           "status": "needs-review",
-          "subtitle": "三列滚轮与向上取整场地费的移动端计算器",
+          "subtitle": "清晰整数滚轮与向上取整场地费的移动端计算器",
           "viewport": {
             "width": 390,
             "height": 844
@@ -19,5 +19,5 @@
   "designSystems": [],
   "primaryDesignSystem": null,
   "createdAt": "2026-11-06T08:11:16.242Z",
-  "updatedAt": "2026-11-09T16:38:39.790Z"
+  "updatedAt": "2026-11-09T16:48:46.745Z"
 }
