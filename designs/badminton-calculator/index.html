@@ -124,6 +124,10 @@
       gap: 8px;
     }
 
+    .field-grid--three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .field {
       display: grid;
       min-width: 0;
@@ -270,6 +274,10 @@
       color: var(--ink);
       font-size: 26px;
       font-weight: 500;
+    }
+
+    .ball-price-field .input-shell {
+      margin-top: 42px;
     }
 
     [hidden] {
@@ -526,33 +534,32 @@
 <body>
   <main class="app" data-screen-label="羽毛球费用计算器">
     <form id="calculatorForm" novalidate>
-      <div class="field-grid">
-        <label class="field" for="maleCount">
-          <span>男性数量</span>
-          <span class="input-shell">
-            <input id="maleCount" name="maleCount" type="number" min="0" step="1" inputmode="numeric" placeholder="0" autocomplete="off" aria-describedby="formStatus">
-            <span class="unit">人</span>
-          </span>
-        </label>
-        <label class="field" for="femaleCount">
-          <span>女性数量</span>
-          <span class="input-shell">
-            <input id="femaleCount" name="femaleCount" type="number" min="0" step="1" inputmode="numeric" placeholder="0" autocomplete="off" aria-describedby="formStatus">
-            <span class="unit">人</span>
-          </span>
-        </label>
+      <div class="field-grid field-grid--three">
+        <div class="field">
+          <span id="maleCountLabel">男性数量</span>
+          <div class="wheel-control" data-wheel-control data-wheel-target="maleCount">
+            <div class="wheel-viewport" id="maleCountWheel" role="spinbutton" tabindex="0" aria-labelledby="maleCountLabel" aria-valuemin="0" aria-valuemax="99" aria-valuenow="0"></div>
+            <input id="maleCount" name="maleCount" type="hidden" value="0">
+          </div>
+        </div>
+        <div class="field">
+          <span id="femaleCountLabel">女性数量</span>
+          <div class="wheel-control" data-wheel-control data-wheel-target="femaleCount">
+            <div class="wheel-viewport" id="femaleCountWheel" role="spinbutton" tabindex="0" aria-labelledby="femaleCountLabel" aria-valuemin="0" aria-valuemax="99" aria-valuenow="0"></div>
+            <input id="femaleCount" name="femaleCount" type="hidden" value="0">
+          </div>
+        </div>
+        <div class="field">
+          <span id="courtDurationLabel">场地时长</span>
+          <div class="wheel-control" data-wheel-control data-wheel-target="courtDuration" data-wheel-step-size="0.5" data-wheel-max="24">
+            <div class="wheel-viewport" id="courtDurationWheel" role="spinbutton" tabindex="0" aria-labelledby="courtDurationLabel" aria-valuemin="0" aria-valuemax="24" aria-valuenow="0"></div>
+            <input id="courtDuration" name="courtDuration" type="hidden" value="0">
+          </div>
+        </div>
       </div>
 
-      <label class="field" for="courtDuration">
-        <span>场地时长</span>
-        <span class="input-shell">
-          <input id="courtDuration" name="courtDuration" type="number" min="0" step="0.5" inputmode="decimal" placeholder="0" autocomplete="off" aria-describedby="formStatus">
-          <span class="unit">小时</span>
-        </span>
-      </label>
-
       <div class="field-grid">
-        <label class="field" for="ball1Price">
+        <label class="field ball-price-field" for="ball1Price">
           <span>球1单价（元）</span>
           <span class="input-shell">
             <input id="ball1Price" name="ball1Price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0" autocomplete="off" data-cache-price aria-describedby="formStatus">
@@ -568,7 +575,7 @@
       </div>
 
       <div class="field-grid">
-        <label class="field" for="ball2Price">
+        <label class="field ball-price-field" for="ball2Price">
           <span>球2单价（元）</span>
           <span class="input-shell">
             <input id="ball2Price" name="ball2Price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0" autocomplete="off" data-cache-price aria-describedby="formStatus">
@@ -643,7 +650,8 @@
         const ball2Count = Math.max(0, toAmount(input.ball2Count));
 
         const peopleCount = maleCount + femaleCount;
-        const courtFee = COURT_RATE_PER_HOUR * durationHours;
+        const rawCourtFee = COURT_RATE_PER_HOUR * durationHours;
+        const courtFee = Math.ceil(Number(rawCourtFee.toFixed(6)));
         const ball1Fee = ball1Price * ball1Count;
         const ball2Fee = ball2Price * ball2Count;
         const ballFee = ball1Fee + ball2Fee;
@@ -736,7 +744,7 @@
       const wheelControls = Array.from(document.querySelectorAll("[data-wheel-control]"));
       const integerFields = new Set(["maleCount", "femaleCount", "ball1Count", "ball2Count"]);
       const WHEEL_ROW_HEIGHT = 32;
-      const WHEEL_MAX = 99;
+      const DEFAULT_WHEEL_MAX = 99;
 
       const elements = {
         resultSection: document.querySelector("#resultSection"),
@@ -756,6 +764,9 @@
       const inputNumberFormatter = new Intl.NumberFormat("zh-CN", {
         maximumFractionDigits: 2,
       });
+      const wholeYuanFormatter = new Intl.NumberFormat("zh-CN", {
+        maximumFractionDigits: 0,
+      });
       let copyTimer = 0;
       let currentOutput = "";
 
@@ -765,6 +776,10 @@
 
       function formatInputNumber(value) {
         return inputNumberFormatter.format(Number.isFinite(value) ? value : 0);
+      }
+
+      function formatWholeYuan(value) {
+        return wholeYuanFormatter.format(Number.isFinite(value) ? value : 0);
       }
 
       function readInput(input) {
@@ -806,9 +821,34 @@
         elements.copyButton.setAttribute("aria-label", value ? "复制结算文本" : "暂无可复制内容");
       }
 
+      function getWheelStep(control) {
+        const step = Number(control.dataset.wheelStepSize);
+        return Number.isFinite(step) && step > 0 ? step : 1;
+      }
+
+      function getWheelMax(control) {
+        const max = Number(control.dataset.wheelMax);
+        return Number.isFinite(max) && max > 0 ? max : DEFAULT_WHEEL_MAX;
+      }
+
+      function normalizeWheelValue(control, value) {
+        const step = getWheelStep(control);
+        const max = getWheelMax(control);
+        const steps = Math.round(Number(value || 0) / step);
+        return {
+          step,
+          max,
+          index: Math.max(0, Math.min(Math.round(max / step), steps)),
+        };
+      }
+
+      function formatWheelValue(value) {
+        return String(Number(Number(value).toFixed(2)));
+      }
+
       function updateWheelSelection(control, value) {
         control.querySelectorAll(".wheel-option").forEach((option) => {
-          const selected = Number(option.dataset.value) === value;
+          const selected = Math.abs(Number(option.dataset.value) - value) < 0.000001;
           option.classList.toggle("is-selected", selected);
         });
       }
@@ -816,16 +856,17 @@
       function setWheelValue(control, value) {
         const target = document.getElementById(control.dataset.wheelTarget);
         const viewport = control.querySelector(".wheel-viewport");
-        const nextValue = Math.max(0, Math.min(WHEEL_MAX, Math.round(Number(value) || 0)));
+        const { step, index } = normalizeWheelValue(control, value);
+        const nextValue = index * step;
 
-        target.value = String(nextValue);
-        viewport.setAttribute("aria-valuenow", String(nextValue));
+        target.value = formatWheelValue(nextValue);
+        viewport.setAttribute("aria-valuenow", formatWheelValue(nextValue));
         viewport.dataset.syncing = "true";
-        viewport.scrollTop = nextValue * WHEEL_ROW_HEIGHT;
+        viewport.scrollTop = index * WHEEL_ROW_HEIGHT;
         updateWheelSelection(control, nextValue);
 
         window.setTimeout(() => {
-          viewport.scrollTop = nextValue * WHEEL_ROW_HEIGHT;
+          viewport.scrollTop = index * WHEEL_ROW_HEIGHT;
           delete viewport.dataset.syncing;
         }, 80);
       }
@@ -840,7 +881,7 @@
       function changeWheelValue(control, delta) {
         const target = document.getElementById(control.dataset.wheelTarget);
         const current = Number(target.value) || 0;
-        setWheelValue(control, current + delta);
+        setWheelValue(control, current + delta * getWheelStep(control));
         render();
       }
 
@@ -858,7 +899,7 @@
           : `球费：${formatMoney(result.ballFee)}元`;
 
         return [
-          `场地费：${formatMoney(result.courtFee)}元（共${formatInputNumber(result.durationHours)}小时）`,
+          `场地费：${formatWholeYuan(result.courtFee)}元（共${formatInputNumber(result.durationHours)}小时）`,
           ballFeeLine,
         ].join("\n");
       }
@@ -988,13 +1029,16 @@
         const viewport = control.querySelector(".wheel-viewport");
         if (viewport.children.length > 0) return;
 
+        const step = getWheelStep(control);
+        const maxIndex = Math.round(getWheelMax(control) / step);
         const fragment = document.createDocumentFragment();
-        for (let value = 0; value <= WHEEL_MAX; value += 1) {
+        for (let index = 0; index <= maxIndex; index += 1) {
+          const value = index * step;
           const option = document.createElement("div");
           option.className = "wheel-option";
-          option.dataset.value = String(value);
+          option.dataset.value = formatWheelValue(value);
           option.setAttribute("aria-hidden", "true");
-          option.textContent = String(value);
+          option.textContent = formatWheelValue(value);
           fragment.appendChild(option);
         }
         viewport.appendChild(fragment);
@@ -1010,13 +1054,13 @@
           if (viewport.dataset.syncing === "true") return;
           window.clearTimeout(control.scrollTimer);
           control.scrollTimer = window.setTimeout(() => {
-            const value = Math.max(
-              0,
-              Math.min(WHEEL_MAX, Math.round(viewport.scrollTop / WHEEL_ROW_HEIGHT)),
-            );
-            if (value === Number(target.value)) return;
-            target.value = String(value);
-            viewport.setAttribute("aria-valuenow", String(value));
+            const step = getWheelStep(control);
+            const maxIndex = Math.round(getWheelMax(control) / step);
+            const index = Math.max(0, Math.min(maxIndex, Math.round(viewport.scrollTop / WHEEL_ROW_HEIGHT)));
+            const value = Number((index * step).toFixed(2));
+            if (Math.abs(value - Number(target.value)) < 0.000001) return;
+            target.value = formatWheelValue(value);
+            viewport.setAttribute("aria-valuenow", formatWheelValue(value));
             updateWheelSelection(control, value);
             render();
           }, 80);
@@ -1039,7 +1083,7 @@
             render();
           } else if (event.key === "End") {
             event.preventDefault();
-            setWheelValue(control, WHEEL_MAX);
+            setWheelValue(control, getWheelMax(control));
             render();
           }
         });
