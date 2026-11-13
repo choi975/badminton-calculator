@@ -6,7 +6,7 @@
           "path": "index.html",
           "createdAt": "2026-11-06T08:11:16.241Z",
           "status": "needs-review",
-          "subtitle": "清晰整数滚轮与向上取整场地费的移动端计算器",
+          "subtitle": "可点击中心数字切换半小时的移动端计算器",
           "viewport": {
             "width": 390,
             "height": 844
@@ -19,5 +19,5 @@
   "designSystems": [],
   "primaryDesignSystem": null,
   "createdAt": "2026-11-06T08:11:16.242Z",
-  "updatedAt": "2026-11-09T16:48:46.745Z"
+  "updatedAt": "2026-11-13T01:59:41.373Z"
 }

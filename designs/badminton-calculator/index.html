@@ -280,6 +280,10 @@
       font-weight: 500;
     }
 
+    .wheel-control[data-wheel-toggle-half="true"] .wheel-option.is-selected {
+      cursor: pointer;
+    }
+
     .ball-price-field .input-shell {
       margin-top: 35px;
     }
@@ -555,8 +559,8 @@
         </div>
         <div class="field">
           <span id="courtDurationLabel">场地时长</span>
-          <div class="wheel-control" data-wheel-control data-wheel-target="courtDuration" data-wheel-max="24">
-            <div class="wheel-viewport" id="courtDurationWheel" role="spinbutton" tabindex="0" aria-labelledby="courtDurationLabel" aria-valuemin="0" aria-valuemax="24" aria-valuenow="0"></div>
+          <div class="wheel-control" data-wheel-control data-wheel-target="courtDuration" data-wheel-max="24" data-wheel-toggle-half="true">
+            <div class="wheel-viewport" id="courtDurationWheel" role="spinbutton" tabindex="0" aria-labelledby="courtDurationLabel" aria-description="点击中间数字可切换整点或半小时" aria-valuemin="0" aria-valuemax="24" aria-valuenow="0"></div>
             <input id="courtDuration" name="courtDuration" type="hidden" value="0">
           </div>
         </div>
@@ -835,14 +839,29 @@
         return Number.isFinite(max) && max > 0 ? max : DEFAULT_WHEEL_MAX;
       }
 
+      function allowsHalfHour(control) {
+        return control.dataset.wheelToggleHalf === "true";
+      }
+
+      function hasHalfHour(control, value) {
+        return allowsHalfHour(control) && Math.abs(value - Math.floor(value) - 0.5) < 0.000001;
+      }
+
       function normalizeWheelValue(control, value) {
         const step = getWheelStep(control);
         const max = getWheelMax(control);
-        const steps = Math.round(Number(value || 0) / step);
+        const numericValue = Number(value || 0);
+        const halfHour = hasHalfHour(control, numericValue);
+        const steps = halfHour
+          ? Math.floor(numericValue / step)
+          : Math.round(numericValue / step);
+        const index = Math.max(0, Math.min(Math.round(max / step), steps));
+
         return {
           step,
           max,
-          index: Math.max(0, Math.min(Math.round(max / step), steps)),
+          index,
+          value: halfHour ? index * step + 0.5 : index * step,
         };
       }
 
@@ -851,17 +870,27 @@
       }
 
       function updateWheelSelection(control, value) {
+        const step = getWheelStep(control);
+        const baseValue = hasHalfHour(control, value) ? Math.floor(value / step) * step : value;
+        const halfHour = hasHalfHour(control, value);
+
         control.querySelectorAll(".wheel-option").forEach((option) => {
-          const selected = Math.abs(Number(option.dataset.value) - value) < 0.000001;
+          const optionValue = Number(option.dataset.value);
+          const selected = Math.abs(optionValue - baseValue) < 0.000001;
           option.classList.toggle("is-selected", selected);
+          option.title = selected && allowsHalfHour(control)
+            ? "点击切换整点或半小时"
+            : "";
+          option.textContent = selected && halfHour
+            ? formatWheelValue(optionValue + 0.5)
+            : formatWheelValue(optionValue);
         });
       }
 
       function setWheelValue(control, value) {
         const target = document.getElementById(control.dataset.wheelTarget);
         const viewport = control.querySelector(".wheel-viewport");
-        const { step, index } = normalizeWheelValue(control, value);
-        const nextValue = index * step;
+        const { index, value: nextValue } = normalizeWheelValue(control, value);
 
         target.value = formatWheelValue(nextValue);
         viewport.setAttribute("aria-valuenow", formatWheelValue(nextValue));
@@ -885,7 +914,8 @@
       function changeWheelValue(control, delta) {
         const target = document.getElementById(control.dataset.wheelTarget);
         const current = Number(target.value) || 0;
-        setWheelValue(control, current + delta * getWheelStep(control));
+        const baseValue = hasHalfHour(control, current) ? Math.floor(current) : current;
+        setWheelValue(control, baseValue + delta * getWheelStep(control));
         render();
       }
 
@@ -1095,7 +1125,15 @@
         viewport.addEventListener("click", (event) => {
           const option = event.target.closest(".wheel-option");
           if (!option) return;
-          setWheelValue(control, Number(option.dataset.value));
+          const optionValue = Number(option.dataset.value);
+          const current = Number(target.value) || 0;
+          const currentBase = hasHalfHour(control, current) ? Math.floor(current) : current;
+
+          if (allowsHalfHour(control) && optionValue === currentBase) {
+            setWheelValue(control, hasHalfHour(control, current) ? currentBase : currentBase + 0.5);
+          } else {
+            setWheelValue(control, optionValue);
+          }
           render();
         });
       });

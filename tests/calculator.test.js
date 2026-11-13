@@ -156,4 +156,18 @@ function closeTo(actual, expected, epsilon = 1e-9) {
   assert.equal(result.courtFee, 47);
 }
 
+{
+  const result = calculate({
+    maleCount: 1,
+    femaleCount: 0,
+    courtDuration: 5.5,
+    ball1Price: 0,
+    ball1Count: 0,
+    ball2Price: 0,
+    ball2Count: 0,
+  });
+
+  assert.equal(result.courtFee, 129);
+}
+
 console.log("All calculator tests passed.");
