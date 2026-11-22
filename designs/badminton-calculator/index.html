@@ -745,10 +745,10 @@
       const form = document.querySelector("#calculatorForm");
       if (!calculator || !form) return;
 
-      const CACHE_KEY = "badminton-calculator:ball-prices:v1";
+      const CACHE_KEY = "badminton-calculator:inputs:v2";
+      const LEGACY_BALL_PRICE_KEY = "badminton-calculator:ball-prices:v1";
       const LEGACY_CACHE_KEY = "badminton-calculator:v1";
       const inputs = Array.from(form.querySelectorAll("input"));
-      const priceInputs = Array.from(form.querySelectorAll("[data-cache-price]"));
       const wheelControls = Array.from(document.querySelectorAll("[data-wheel-control]"));
       const integerFields = new Set(["maleCount", "femaleCount", "ball1Count", "ball2Count"]);
       const WHEEL_ROW_HEIGHT = 32;
@@ -940,6 +940,7 @@
 
       function render() {
         const values = collectInput();
+        saveCachedInputs();
         const validationError = validateInput(values);
         const result = calculator.calculate(values);
         const peopleCount = result.maleCount + result.femaleCount;
@@ -983,41 +984,55 @@
         setOutput(output);
       }
 
-      function saveBallPrices() {
+      function saveCachedInputs() {
         try {
-          const prices = priceInputs.reduce((saved, input) => {
+          const savedInputs = inputs.reduce((saved, input) => {
             saved[input.name] = input.value;
             return saved;
           }, {});
-          localStorage.setItem(CACHE_KEY, JSON.stringify(prices));
+          localStorage.setItem(CACHE_KEY, JSON.stringify(savedInputs));
         } catch {
           // The calculator remains usable when browser storage is unavailable.
         }
       }
 
-      function restoreBallPrices() {
+      function readCachedValue(key) {
         try {
-          let saved = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+          return JSON.parse(localStorage.getItem(key) || "null");
+        } catch {
+          return null;
+        }
+      }
+
+      function restoreCachedInputs() {
+        try {
+          let saved = readCachedValue(CACHE_KEY);
 
           if (!saved) {
-            const legacy = JSON.parse(localStorage.getItem(LEGACY_CACHE_KEY) || "null");
+            const legacyPrices = readCachedValue(LEGACY_BALL_PRICE_KEY);
+            const legacyInputs = readCachedValue(LEGACY_CACHE_KEY);
+            const legacy = legacyPrices || legacyInputs;
             if (legacy) {
               saved = {
-                ball1Price: legacy.ball1Price,
-                ball2Price: legacy.ball2Price,
+                ball1Price: legacy.ball1Price ?? "",
+                ball2Price: legacy.ball2Price ?? "",
               };
               localStorage.setItem(CACHE_KEY, JSON.stringify(saved));
             }
           }
 
           if (saved) {
-            priceInputs.forEach((input) => {
-              if (typeof saved[input.name] === "string" || typeof saved[input.name] === "number") {
+            inputs.forEach((input) => {
+              if (
+                Object.prototype.hasOwnProperty.call(saved, input.name)
+                && (typeof saved[input.name] === "string" || typeof saved[input.name] === "number")
+              ) {
                 input.value = String(saved[input.name]);
               }
             });
           }
 
+          localStorage.removeItem(LEGACY_BALL_PRICE_KEY);
           localStorage.removeItem(LEGACY_CACHE_KEY);
         } catch {
           // Ignore unavailable or malformed saved values.
@@ -1053,7 +1068,6 @@
 
       inputs.forEach((input) => {
         input.addEventListener("input", () => {
-          if (input.matches("[data-cache-price]")) saveBallPrices();
           if (input.type === "hidden") syncWheelDisplays();
           render();
         });
@@ -1142,14 +1156,14 @@
       elements.copyButton.addEventListener("click", copyOutput);
 
       form.reset();
-      restoreBallPrices();
+      restoreCachedInputs();
       syncWheelDisplays();
       render();
 
       window.addEventListener("pageshow", (event) => {
         if (!event.persisted) return;
         form.reset();
-        restoreBallPrices();
+        restoreCachedInputs();
         syncWheelDisplays();
         render();
       });
